@@ -1,0 +1,1819 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carta Secreta - Scrapbook Estético</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tipografías editoriales y manuscritas -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600;1,700&family=Lora:ital,wght@0,400;0,500;1,400;1,600&family=Playfair+Display:ital,wght@0,500;1,400;1,600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --card-color: #8a9a7b;
+            --card-dark: #6b7b5d;
+            --card-deep: #536146;
+            --card-light: #a3b394;
+            --bg-woven: #748466;
+            --paper-color: #f7f4eb;
+            --ink-visible: #3a4235;
+            --ink-secret: #8b1e3f;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Lora', Georgia, serif;
+            background-color: #ebe7de;
+            color: var(--ink-visible);
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        /* Fondo dividido: Izquierda relieve damasco crema, Derecha tela tejida */
+        .scrapbook-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            display: flex;
+        }
+
+        .bg-left-damask {
+            width: 28%;
+            height: 100%;
+            background-color: #f4f1ea;
+            background-image:
+                radial-gradient(circle at 50% 50%, rgba(255,255,255,0.88) 0%, rgba(230,225,215,0.45) 60%, rgba(210,205,195,0.35) 100%),
+                repeating-radial-gradient(circle at 0 0, transparent 0, #f4f1ea 28px),
+                repeating-linear-gradient(45deg, rgba(215,210,200,0.25) 0px, rgba(215,210,200,0.25) 2px, transparent 2px, transparent 14px),
+                repeating-linear-gradient(-45deg, rgba(255,255,255,0.75) 0px, rgba(255,255,255,0.75) 3px, transparent 3px, transparent 14px);
+            box-shadow: inset -10px 0 24px rgba(0,0,0,0.06);
+        }
+
+        .bg-right-woven {
+            width: 72%;
+            height: 100%;
+            background-color: var(--bg-woven);
+            transition: background-color 0.35s ease;
+            background-image:
+                linear-gradient(90deg, rgba(255,255,255,0.09) 50%, transparent 50%),
+                linear-gradient(rgba(255,255,255,0.09) 50%, transparent 50%),
+                linear-gradient(90deg, rgba(20,20,20,0.18) 25%, transparent 25%),
+                linear-gradient(rgba(20,20,20,0.18) 25%, transparent 25%);
+            background-size: 6px 6px, 6px 6px, 3px 3px, 3px 3px;
+            box-shadow: inset 8px 0 22px rgba(0,0,0,0.18);
+        }
+
+        /* Sombras y texturas realistas */
+        .paper-shadow {
+            box-shadow:
+                0 14px 30px -6px rgba(25, 25, 25, 0.38),
+                0 4px 10px -2px rgba(25, 25, 25, 0.22),
+                inset 0 0 40px rgba(255, 255, 255, 0.1);
+        }
+
+        .cutout-tag {
+            background: linear-gradient(135deg, #f5f3ee 0%, #e5e1d8 100%);
+            box-shadow: 2px 3px 6px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.9);
+            font-family: 'Playfair Display', Georgia, serif;
+            font-style: italic;
+            color: #4d5448;
+            transition: transform 0.2s ease;
+        }
+
+        .cutout-tag:hover {
+            transform: scale(1.08) rotate(0deg) !important;
+        }
+
+        .cream-paper-texture {
+            background-color: var(--paper-color);
+            background-image:
+                radial-gradient(rgba(120, 120, 120, 0.08) 1px, transparent 0),
+                linear-gradient(to bottom right, rgba(255,255,255,0.45), rgba(0,0,0,0.04));
+            background-size: 18px 18px, 100% 100%;
+            transition: background-color 0.35s ease;
+        }
+
+        .font-title-serif {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+        }
+
+        .font-body-serif {
+            font-family: 'Lora', Georgia, serif;
+        }
+
+        .font-secret-handwriting {
+            font-family: 'Caveat', cursive, sans-serif;
+        }
+
+        /* Sistema de capas para revelado de pensamientos ocultos */
+        .letter-text-stage {
+            position: relative;
+            min-height: 230px;
+        }
+
+        .layer-visible {
+            position: relative;
+            z-index: 10;
+            color: var(--ink-visible);
+            transition: color 0.3s ease;
+        }
+
+        .layer-secret {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            pointer-events: none !important;
+            clip-path: circle(0px at 50% 50%);
+            -webkit-clip-path: circle(0px at 50% 50%);
+            border-radius: 10px;
+            color: var(--ink-secret);
+            transition: background 0.25s ease, color 0.25s ease;
+        }
+
+        /* Apariencia del halo interior según el objeto especial */
+        .layer-secret.theme-locket {
+            background: radial-gradient(
+                circle at var(--mx, 50%) var(--my, 50%),
+                var(--paper-color) 0%,
+                color-mix(in srgb, var(--paper-color) 88%, var(--card-color)) 72%,
+                color-mix(in srgb, var(--paper-color) 72%, var(--card-color)) 100%
+            );
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.45);
+        }
+
+        .layer-secret.theme-candle {
+            background: radial-gradient(
+                circle at var(--mx, 50%) var(--my, 50%),
+                #fff7e0 0%,
+                #fae5b8 55%,
+                #e8c78a 100%
+            );
+            text-shadow: 0 0 10px rgba(255, 174, 66, 0.55);
+        }
+
+        .layer-secret.theme-moonlight {
+            background: radial-gradient(
+                circle at var(--mx, 50%) var(--my, 50%),
+                #eef5fc 0%,
+                #dce7f5 60%,
+                #c5d5eb 100%
+            );
+            text-shadow: 0 0 12px rgba(150, 190, 255, 0.75);
+        }
+
+        .layer-secret.reveal-all {
+            clip-path: circle(150% at 50% 50%) !important;
+            -webkit-clip-path: circle(150% at 50% 50%) !important;
+            transition: clip-path 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* Cursor / Lente mágica flotante: nunca bloquea clics ni toques */
+        #magic-tool-cursor {
+            position: fixed;
+            pointer-events: none !important;
+            user-select: none;
+            z-index: 60;
+            transform: translate(-50%, -50%);
+            display: none;
+            filter: drop-shadow(0 8px 16px rgba(0,0,0,0.32));
+        }
+
+        .shared-link-mode #btn-mode-edit,
+        .shared-link-mode #editor-drawer {
+            display: none !important;
+        }
+
+        @keyframes gentleFloat {
+            0%, 100% { transform: translateY(0px) rotate(-2deg); }
+            50% { transform: translateY(-4px) rotate(-1deg); }
+        }
+
+        .float-sticker {
+            animation: gentleFloat 4.5s ease-in-out infinite;
+        }
+
+        @keyframes envelopePulse {
+            0% { transform: rotate(3.5deg) scale(1); }
+            50% { transform: rotate(1.5deg) scale(1.05); }
+            100% { transform: rotate(3.5deg) scale(1); }
+        }
+
+        .envelope-animate {
+            animation: envelopePulse 0.45s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start py-4 px-3 sm:px-6 relative">
+
+    <!-- Fondo dividido texturizado -->
+    <div class="scrapbook-bg" aria-hidden="true">
+        <div class="bg-left-damask"></div>
+        <div class="bg-right-woven"></div>
+    </div>
+
+    <!-- Objeto Especial Flotante (Relicario / Vela / Luna) -->
+    <div id="magic-tool-cursor" aria-hidden="true"></div>
+
+    <!-- BARRA DE HERRAMIENTAS SUPERIOR -->
+    <header class="relative z-40 w-full max-w-3xl mb-5">
+        <div class="bg-[#fcfaf5]/95 backdrop-blur-md border border-[#b8c4ae] rounded-2xl p-2.5 sm:p-3 shadow-lg flex flex-wrap items-center justify-between gap-2">
+
+            <!-- Botones de Modo: Lectura vs Editar -->
+            <div id="mode-switch-group" class="flex items-center bg-[#e9ede4] p-1 rounded-xl border border-[#cfd8c6]">
+                <button type="button" id="btn-mode-read" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-[#5f7153] text-white shadow-sm cursor-pointer">
+                    <span>✨</span>
+                    <span>Modo Lectura</span>
+                </button>
+                <button type="button" id="btn-mode-edit" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all text-[#4b5941] hover:bg-white/70 cursor-pointer">
+                    <span>✒️</span>
+                    <span>Editar Carta</span>
+                </button>
+            </div>
+
+            <!-- Selector de Objeto Especial para Revelar -->
+            <div id="tool-selector-group" class="flex items-center gap-1.5 flex-wrap">
+                <span class="text-xs font-medium text-[#5a694f] hidden md:inline mr-1">Pasar por encima:</span>
+                <button type="button" id="tool-btn-locket" data-tool="locket" class="tool-btn flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition-all bg-[#eef3ea] border-[#788c6a] text-[#35442b] shadow-sm cursor-pointer">
+                    <span>💚</span>
+                    <span>Relicario de Cristal</span>
+                </button>
+                <button type="button" id="tool-btn-candle" data-tool="candle" class="tool-btn flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold border border-transparent text-[#5c6655] hover:bg-[#f0ede4] transition-all cursor-pointer">
+                    <span>🕯️</span>
+                    <span>Luz de Vela</span>
+                </button>
+                <button type="button" id="tool-btn-moonlight" data-tool="moonlight" class="tool-btn flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold border border-transparent text-[#5c6655] hover:bg-[#f0ede4] transition-all cursor-pointer">
+                    <span>🌙</span>
+                    <span>Luz de Luna</span>
+                </button>
+            </div>
+
+            <!-- Acciones: Revelar Todo, Compartir y Guardar HTML -->
+            <div class="flex items-center gap-1.5">
+                <button type="button" id="btn-reveal-all" class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-[#f3efe4] hover:bg-[#e6decb] text-[#524938] border border-[#d6ccb6] transition-all cursor-pointer" title="Mostrar u ocultar todo el texto secreto">
+                    <span id="icon-reveal-all">👁️</span>
+                    <span id="text-reveal-all">Revelar Todo</span>
+                </button>
+                <button type="button" id="btn-open-share" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#5f7153] hover:bg-[#4c5c42] text-white shadow-sm transition-all cursor-pointer" title="Compartir esta carta mediante un enlace">
+                    <span>🔗</span>
+                    <span>Compartir</span>
+                </button>
+                <button type="button" id="btn-download-html" class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-[#f3efe4] hover:bg-[#e6decb] text-[#4b5941] border border-[#d6ccb6] transition-all cursor-pointer" title="Descargar copia HTML interactiva">
+                    <span>💾</span>
+                    <span class="hidden sm:inline">Guardar</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Pista contextual -->
+        <div id="helper-banner" class="mt-2 text-center">
+            <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs bg-[#536348]/95 text-[#f9f7f2] shadow-sm">
+                <span>🪄</span>
+                <span id="helper-text">Desliza el relicario de cristal sobre los párrafos de la carta para revelar sus verdaderos pensamientos...</span>
+            </span>
+        </div>
+    </header>
+
+    <!-- Banner informativo cuando alguien abre un enlace compartido -->
+    <div id="shared-mode-banner" class="hidden relative z-30 w-full max-w-2xl mb-4">
+        <div class="bg-[#fcfaf5]/95 border border-[#b8c4ae] rounded-2xl px-4 py-2.5 shadow-md flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div class="flex items-center gap-2 text-[#45543b]">
+                <span>💌</span>
+                <span>Has recibido una <strong>carta secreta</strong>. Pasa la lente por encima del texto para descubrir lo que oculta.</span>
+            </div>
+            <button type="button" id="btn-banner-edit" class="px-3 py-1 rounded-lg bg-[#eef3ea] hover:bg-[#dfe8d8] text-[#35442b] font-semibold border border-[#b8c4ae] transition-colors cursor-pointer">
+                Crear mi propia carta
+            </button>
+        </div>
+    </div>
+
+    <!-- PANEL DE EDICIÓN COMPLETO (Editar Carta) -->
+    <section id="editor-drawer" class="hidden relative z-30 w-full max-w-2xl mb-6">
+        <div class="bg-[#fcfaf5] border-2 border-[#8a9a7b] rounded-2xl p-4 sm:p-5 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-[#e2dfd5] pb-2.5">
+                <h2 class="font-title-serif italic text-xl sm:text-2xl font-bold text-[#45543b] flex items-center gap-2">
+                    <span>✒️</span>
+                    <span>Editar Pensamientos, Colores y Recuerdos</span>
+                </h2>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="btn-reset-default" class="text-xs px-2.5 py-1.5 rounded-lg text-[#6e5d49] hover:bg-[#f0ece1] border border-[#dcd5c5] transition-colors cursor-pointer">
+                        Restaurar original
+                    </button>
+                    <button type="button" id="btn-close-editor" class="text-xs px-3.5 py-1.5 rounded-lg bg-[#5f7153] text-white font-semibold hover:bg-[#4c5c42] transition-colors cursor-pointer">
+                        Aplicar y Leer ✓
+                    </button>
+                </div>
+            </div>
+
+            <!-- Título y Etiqueta de Peluches -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label for="input-title" class="block text-xs font-semibold text-[#526047] mb-1">Título de la Carta</label>
+                    <input type="text" id="input-title" class="w-full px-3 py-1.5 rounded-xl bg-white border border-[#cbd4c2] font-title-serif italic text-lg text-[#3a4235] focus:outline-none focus:border-[#6b7b5d]" value="Dearest prince">
+                </div>
+                <div>
+                    <label for="input-sticker-label" class="block text-xs font-semibold text-[#526047] mb-1">Etiqueta de los Peluches</label>
+                    <input type="text" id="input-sticker-label" class="w-full px-3 py-1.5 rounded-xl bg-white border border-[#cbd4c2] text-sm text-[#3a4235] focus:outline-none focus:border-[#6b7b5d]" value="Plushies for us!!!">
+                </div>
+            </div>
+
+            <!-- 4 Etiquetas del Marco de Encaje -->
+            <div>
+                <label class="block text-xs font-semibold text-[#526047] mb-1">Recortes del marco de encaje (4 palabras)</label>
+                <div class="grid grid-cols-4 gap-2">
+                    <input type="text" id="input-tag-1" class="px-2.5 py-1.5 rounded-lg bg-white border border-[#cbd4c2] text-xs text-center italic font-medium" value="To">
+                    <input type="text" id="input-tag-2" class="px-2.5 py-1.5 rounded-lg bg-white border border-[#cbd4c2] text-xs text-center italic font-medium" value="my">
+                    <input type="text" id="input-tag-3" class="px-2.5 py-1.5 rounded-lg bg-white border border-[#cbd4c2] text-xs text-center italic font-medium" value="cutie">
+                    <input type="text" id="input-tag-4" class="px-2.5 py-1.5 rounded-lg bg-white border border-[#cbd4c2] text-xs text-center italic font-medium" value="pie">
+                </div>
+            </div>
+
+            <!-- Paletas y Colores Personalizados -->
+            <div class="bg-[#f4f1ea] p-3.5 rounded-xl border border-[#dcd8cc] space-y-3">
+                <div class="flex items-center justify-between flex-wrap gap-1">
+                    <span class="text-xs font-bold text-[#3f4a37] flex items-center gap-1.5">
+                        <span>🎨</span>
+                        <span>Paletas y Colores de la Carta</span>
+                    </span>
+                    <span class="text-[11px] text-[#6d7567]">Toca un tema o personaliza cada color</span>
+                </div>
+
+                <!-- 6 Paletas Predefinidas -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <button type="button" data-palette="sage" class="palette-btn flex items-center gap-2 p-2 rounded-xl bg-white border border-[#d5d2c8] hover:border-[#6b7b5d] text-left transition-all cursor-pointer">
+                        <span class="flex -space-x-1 shrink-0">
+                            <span class="w-4 h-4 rounded-full border border-white shadow-xs" style="background:#8a9a7b"></span>
+                            <span class="w-4 h-4 rounded-full border border-white shadow-xs" style="background:#f7f4eb"></span>
+                        </span>
+                        <span class="text-xs font-semibold text-[#3a4235] truncate">Verde Salvia</span>
+                    </button>
+
+                    <button type="button" data-palette="rose" class="palette-btn flex items-center gap-2 p-2 rounded-xl bg-white border border-[#d5d2c8] hover:border-[#c9939b] text-left transition-all cursor-pointer">
+                        <span class="flex -space-x-1 shrink-0">
+                            <span class="w-4 h-4 rounded-full border border-white shadow-xs" style="background:#c9939b"></span>
+                            <span class="w-4 h-4 rounded-full border border-white shadow-xs" style="background:#fdf6f7"></span>
+                        </span>
+                        <span class="text-xs font-semibold text-[#4a2c32] truncate">Rosa Empolvado</span>
+                    </button>
+
+                    <button type="button" data-palette="burgundy" class="palette-btn flex items-center gap-2 p-2 rounded-xl bg-white border border-[#d5d2c8] hover:border-[#6e2c39] text-left transition-all cursor-pointer">
+                        <span class="flex -space-x-1 shrink-0">
+                            <span class="w-4 h-4 rounded-full border border-white shadow-xs" style="background:#6e2c39"></span>
+                            <span class="w-4 h-4 rounded-full border border-white shadow-xs" style="background:#f4ebd9"></span>
+                        </span>
+                        <span class="text-xs font-semibold text-[#2e181c] truncate">Borgoña & Pergamino</span>
+                    </button>
+
+                    <button type="button" data-palette="midnight" class="palette-btn flex items-center gap-2 p-2 rounded-xl bg-white border border-[#d5d2c8] hover:border-[#33475b] text-left transition-all cursor-pointer">
+                        <span class="flex -space-x-1 shrink-0">
+                            <span class="w-4 h-4 rounded-full border border-white shadow-xs" style="background:#33475b"></span>
+                            <span class="w-4 h-4 rounded-full border border-white shadow-xs" style="background:#eef2f6"></span>
+                        </span>
+                        <span class="text-xs font-semibold text-[#1c2833] truncate">Azul Medianoche</span>
+                    </button>
+
+                    <button type="button" data-palette="lavender" class="palette-btn flex items-center gap-2 p-2 rounded-xl bg-white border border-[#d5d2c8] hover:border-[#887ba3] text-left transition-all cursor-pointer">
+                        <span class="flex -space-x-1 shrink-0">
+                            <span class="w-4 h-4 rounded-full border border-white shadow-xs" style="background:#887ba3"></span>
+                            <span class="w-4 h-4 rounded-full border border-white shadow-xs" style="background:#f6f4fa"></span>
+                        </span>
+                        <span class="text-xs font-semibold text-[#2f293b] truncate">Lavanda Vintage</span>
+                    </button>
+
+                    <button type="button" data-palette="gothic" class="palette-btn flex items-center gap-2 p-2 rounded-xl bg-white border border-[#d5d2c8] hover:border-[#262629] text-left transition-all cursor-pointer">
+                        <span class="flex -space-x-1 shrink-0">
+                            <span class="w-4 h-4 rounded-full border border-white shadow-xs" style="background:#262629"></span>
+                            <span class="w-4 h-4 rounded-full border border-white shadow-xs" style="background:#1a1a1d"></span>
+                        </span>
+                        <span class="text-xs font-semibold text-[#262629] truncate">Obsidiana & Carmesí</span>
+                    </button>
+                </div>
+
+                <!-- 4 Selectores de Color Individuales -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                    <label class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-white border border-[#d5d2c8] cursor-pointer">
+                        <span class="text-[11px] font-medium text-[#3f4a37]">Tarjetas / Sobre</span>
+                        <input type="color" id="color-card" value="#8a9a7b" class="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0">
+                    </label>
+                    <label class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-white border border-[#d5d2c8] cursor-pointer">
+                        <span class="text-[11px] font-medium text-[#3f4a37]">Papel Carta</span>
+                        <input type="color" id="color-paper" value="#f7f4eb" class="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0">
+                    </label>
+                    <label class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-white border border-[#d5d2c8] cursor-pointer">
+                        <span class="text-[11px] font-medium text-[#3f4a37]">Tinta Visible</span>
+                        <input type="color" id="color-ink-visible" value="#3a4235" class="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0">
+                    </label>
+                    <label class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-white border border-[#d5d2c8] cursor-pointer">
+                        <span class="text-[11px] font-medium text-[#3f4a37]">Tinta Oculta</span>
+                        <input type="color" id="color-ink-secret" value="#8b1e3f" class="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Pensamientos Visibles vs Pensamientos Ocultos -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                <div class="bg-[#f4f1ea] p-3 rounded-xl border border-[#dcd8cc]">
+                    <label for="input-visible-text" class="flex items-center gap-1.5 text-xs font-bold text-[#3f4a37] mb-1.5">
+                        <span>📄</span>
+                        <span>Pensamientos Visibles (Superficie)</span>
+                    </label>
+                    <textarea id="input-visible-text" rows="7" class="w-full p-2.5 rounded-lg bg-white border border-[#cbd4c2] text-xs leading-relaxed text-[#3a4235] focus:outline-none focus:border-[#6b7b5d] resize-y"></textarea>
+                </div>
+
+                <div class="bg-[#eef3ea] p-3 rounded-xl border border-[#b6c7a8]">
+                    <label for="input-secret-text" class="flex items-center gap-1.5 text-xs font-bold text-[#6e1b34] mb-1.5">
+                        <span>🔒</span>
+                        <span>Pensamientos Ocultos (Al pasar la lente)</span>
+                    </label>
+                    <textarea id="input-secret-text" rows="7" class="w-full p-2.5 rounded-lg bg-white border border-[#9cb38a] text-sm font-secret-handwriting text-[#6e1b34] leading-snug focus:outline-none focus:border-[#5f7153] resize-y"></textarea>
+                </div>
+            </div>
+
+            <!-- Subida de Fotografías Personalizadas -->
+            <div class="pt-1 border-t border-[#e2dfd5]">
+                <span class="block text-xs font-semibold text-[#526047] mb-2">Fotografías del Collage (Relicario y Recorte de la Carta)</span>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <label class="cursor-pointer flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-[#f2f5ef] border border-dashed border-[#8a9a7b] text-xs font-medium text-[#45543b] transition-colors">
+                        <span>🩶</span>
+                        <span>Foto Relicario Izq.</span>
+                        <input type="file" id="upload-locket-left" accept="image/*" class="hidden">
+                    </label>
+                    <label class="cursor-pointer flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-[#f2f5ef] border border-dashed border-[#8a9a7b] text-xs font-medium text-[#45543b] transition-colors">
+                        <span>🩶</span>
+                        <span>Foto Relicario Der.</span>
+                        <input type="file" id="upload-locket-right" accept="image/*" class="hidden">
+                    </label>
+                    <label class="cursor-pointer flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-[#f2f5ef] border border-dashed border-[#8a9a7b] text-xs font-medium text-[#45543b] transition-colors">
+                        <span>🖼️</span>
+                        <span>Foto de la Carta</span>
+                        <input type="file" id="upload-polaroid" accept="image/*" class="hidden">
+                    </label>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- LIENZO PRINCIPAL DEL SCRAPBOOK -->
+    <main id="scrapbook-canvas" class="relative z-20 w-full max-w-[560px] mx-auto my-auto pt-1 pb-12 px-2 flex flex-col items-center">
+
+        <!-- TARJETA SUPERIOR -->
+        <div id="top-scrapbook-card" class="relative w-[94%] sm:w-[90%] bg-[#8a9a7b] paper-shadow p-3 sm:p-4 transform -rotate-[2.6deg] z-10 transition-colors duration-300">
+            <div class="relative w-full aspect-[1.48/1] flex items-center justify-center">
+                <!-- Marco de Encaje Blanco (Doily SVG) -->
+                <svg viewBox="0 0 600 400" class="w-full h-full drop-shadow-md" aria-hidden="true">
+                    <defs>
+                        <pattern id="laceMesh" width="24" height="24" patternUnits="userSpaceOnUse">
+                            <path d="M0 12 L12 0 L24 12 L12 24 Z" fill="none" stroke="#fcfbf9" stroke-width="1.6"/>
+                            <circle cx="12" cy="12" r="3.5" fill="none" stroke="#fcfbf9" stroke-width="1.2"/>
+                            <path d="M0 0 L24 24 M24 0 L0 24" stroke="#fcfbf9" stroke-width="0.9" opacity="0.85"/>
+                        </pattern>
+                        <mask id="doilyMask">
+                            <rect x="12" y="12" width="576" height="376" rx="36" fill="white"/>
+                            <ellipse cx="300" cy="200" rx="205" ry="125" fill="black"/>
+                        </mask>
+                    </defs>
+
+                    <g mask="url(#doilyMask)">
+                        <rect x="14" y="14" width="572" height="372" rx="34" fill="url(#laceMesh)" />
+                        <rect x="14" y="14" width="572" height="372" rx="34" fill="none" stroke="#ffffff" stroke-width="5" stroke-dasharray="10 6"/>
+                    </g>
+
+                    <!-- Óvalo central del encaje -->
+                    <ellipse id="doily-center-oval" cx="300" cy="200" rx="206" ry="126" fill="#f7f4eb" stroke="#ffffff" stroke-width="4"/>
+                    <ellipse cx="300" cy="200" rx="216" ry="136" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="4 8"/>
+                    <ellipse cx="300" cy="200" rx="196" ry="116" fill="none" stroke="#e5e2d9" stroke-width="1.5" stroke-dasharray="12 6"/>
+                </svg>
+
+                <!-- 4 Etiquetas Recortadas ("To", "my", "cutie", "pie") -->
+                <span id="display-tag-1" data-focus="input-tag-1" class="cutout-tag cursor-pointer absolute top-[8%] left-[12%] px-3 py-0.5 text-lg sm:text-2xl transform -rotate-3 select-none">To</span>
+                <span id="display-tag-2" data-focus="input-tag-2" class="cutout-tag cursor-pointer absolute top-[15%] right-[13%] px-3 py-0.5 text-lg sm:text-2xl transform rotate-3 select-none">my</span>
+                <span id="display-tag-3" data-focus="input-tag-3" class="cutout-tag cursor-pointer absolute bottom-[12%] left-[18%] px-3.5 py-0.5 text-lg sm:text-2xl transform -rotate-2 select-none">cutie</span>
+                <span id="display-tag-4" data-focus="input-tag-4" class="cutout-tag cursor-pointer absolute bottom-[7%] right-[16%] px-3.5 py-0.5 text-lg sm:text-2xl transform rotate-2 select-none">pie</span>
+
+                <!-- Sobre con Sello de Cera -->
+                <div id="wax-envelope" title="Toca el sello de cera" class="cursor-pointer absolute left-[18%] top-[27%] w-[44%] aspect-[1.45/1] transform rotate-[3.5deg] drop-shadow-lg transition-transform hover:scale-105">
+                    <svg viewBox="0 0 260 180" class="w-full h-full overflow-visible">
+                        <defs>
+                            <linearGradient id="envBody" x1="0" y1="0" x2="1" y2="1">
+                                <stop id="env-stop-1" offset="0%" stop-color="#8a9a7b"/>
+                                <stop id="env-stop-2" offset="100%" stop-color="#6b7b5d"/>
+                            </linearGradient>
+                            <linearGradient id="envFlap" x1="0" y1="0" x2="0" y2="1">
+                                <stop id="env-flap-1" offset="0%" stop-color="#a3b394"/>
+                                <stop id="env-flap-2" offset="100%" stop-color="#768668"/>
+                            </linearGradient>
+                            <radialGradient id="waxSeal" cx="40%" cy="35%" r="60%">
+                                <stop offset="0%" stop-color="#f7eed9"/>
+                                <stop offset="65%" stop-color="#e2d4b5"/>
+                                <stop offset="100%" stop-color="#c2ac82"/>
+                            </radialGradient>
+                        </defs>
+                        <rect id="env-rect" x="2" y="2" width="256" height="176" rx="4" fill="url(#envBody)" stroke="#536146" stroke-width="1"/>
+                        <path id="env-fold-bottom" d="M2 178 L112 96 L148 96 L258 178 Z" fill="#768668" opacity="0.75"/>
+                        <path id="env-fold-left" d="M2 2 L112 96 L2 178 Z" fill="#819172" opacity="0.65"/>
+                        <path id="env-fold-right" d="M258 2 L148 96 L258 178 Z" fill="#6b7b5d" opacity="0.65"/>
+                        <path d="M2 2 L130 112 L258 2 Z" fill="url(#envFlap)" filter="drop-shadow(0 4px 5px rgba(0,0,0,0.22))"/>
+                        <g transform="translate(130, 108)">
+                            <circle cx="0" cy="2" r="22" fill="rgba(0,0,0,0.22)"/>
+                            <path d="M-21,-4 C-23,-14 -12,-22 0,-21 C12,-22 23,-13 21,-2 C23,10 14,21 1,21 C-12,22 -23,11 -21,-4 Z" fill="url(#waxSeal)" stroke="#c8b692" stroke-width="1.5"/>
+                            <circle cx="0" cy="0" r="14.5" fill="none" stroke="#b8a37c" stroke-width="1.2"/>
+                            <path d="M0 -8 C3 -3 3 3 0 8 C-3 3 -3 -3 0 -8 Z M-6 -2 C-2 0 2 0 6 -2" fill="none" stroke="#a69068" stroke-width="1.3" stroke-linecap="round"/>
+                        </g>
+                    </svg>
+                </div>
+
+                <!-- Relicario Doble de Plata en Forma de Corazón -->
+                <div class="absolute right-[10%] top-[34%] w-[38%] aspect-[1.75/1] transform -rotate-[3deg] drop-shadow-xl flex items-center justify-center">
+                    <svg viewBox="0 0 260 155" class="w-full h-full overflow-visible">
+                        <defs>
+                            <linearGradient id="silverMetal" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#ffffff"/>
+                                <stop offset="35%" stop-color="#cfd4d8"/>
+                                <stop offset="70%" stop-color="#8b9298"/>
+                                <stop offset="100%" stop-color="#e8ecef"/>
+                            </linearGradient>
+                            <clipPath id="heartClipLeft">
+                                <path d="M68 134 C68 134 14 98 14 60 C14 38 31 24 49 24 C60 24 68 31 68 38 C68 31 76 24 87 24 C105 24 122 38 122 60 C122 98 68 134 68 134 Z"/>
+                            </clipPath>
+                            <clipPath id="heartClipRight">
+                                <path d="M192 134 C192 134 138 98 138 60 C138 38 155 24 173 24 C184 24 192 31 192 38 C192 31 200 24 211 24 C229 24 246 38 246 60 C246 98 192 134 192 134 Z"/>
+                            </clipPath>
+                        </defs>
+
+                        <path d="M68 142 C68 142 6 102 6 59 C6 33 26 16 48 16 C60 16 68 23 68 30 C68 23 76 16 88 16 C110 16 130 33 130 59 C130 102 68 142 68 142 Z" fill="url(#silverMetal)" stroke="#7a8086" stroke-width="1.5"/>
+                        <g clip-path="url(#heartClipLeft)">
+                            <rect x="10" y="20" width="116" height="118" fill="#d9d9d9"/>
+                            <g id="default-svg-left">
+                                <rect x="10" y="20" width="116" height="118" fill="#e5e5e5"/>
+                                <circle cx="68" cy="64" r="21" fill="#3a3a3a"/>
+                                <path d="M47 62 C47 44 89 44 89 62 C86 52 72 54 68 58 C62 54 50 53 47 62 Z" fill="#1d1d1d"/>
+                                <path d="M32 136 C34 104 48 93 68 93 C88 93 102 104 104 136 Z" fill="#262626"/>
+                                <path d="M58 93 L68 112 L78 93 Z" fill="#f2f2f2"/>
+                            </g>
+                            <image id="img-locket-left" href="" x="10" y="20" width="116" height="118" preserveAspectRatio="xMidYMid slice" style="filter: grayscale(100%) contrast(1.12); display: none;"/>
+                        </g>
+                        <path d="M68 134 C68 134 14 98 14 60 C14 38 31 24 49 24 C60 24 68 31 68 38 C68 31 76 24 87 24 C105 24 122 38 122 60 C122 98 68 134 68 134 Z" fill="none" stroke="#9aa0a6" stroke-width="2"/>
+
+                        <rect x="126" y="54" width="8" height="18" rx="3" fill="url(#silverMetal)" stroke="#6d7378" stroke-width="1"/>
+                        <rect x="126" y="84" width="8" height="18" rx="3" fill="url(#silverMetal)" stroke="#6d7378" stroke-width="1"/>
+
+                        <path d="M192 142 C192 142 130 102 130 59 C130 33 150 16 172 16 C184 16 192 23 192 30 C192 23 200 16 212 16 C234 16 254 33 254 59 C254 102 192 142 192 142 Z" fill="url(#silverMetal)" stroke="#7a8086" stroke-width="1.5"/>
+                        <g clip-path="url(#heartClipRight)">
+                            <rect x="134" y="20" width="116" height="118" fill="#cfcfcf"/>
+                            <g id="default-svg-right">
+                                <rect x="134" y="20" width="116" height="118" fill="#dcdcdc"/>
+                                <circle cx="192" cy="65" r="20" fill="#333333"/>
+                                <path d="M170 64 C170 43 214 43 214 64 C208 55 196 56 192 60 C186 55 175 56 170 64 Z" fill="#171717"/>
+                                <path d="M156 136 C158 103 172 93 192 93 C212 93 226 103 228 136 Z" fill="#1f1f1f"/>
+                            </g>
+                            <image id="img-locket-right" href="" x="134" y="20" width="116" height="118" preserveAspectRatio="xMidYMid slice" style="filter: grayscale(100%) contrast(1.15); display: none;"/>
+                        </g>
+                        <path d="M192 134 C192 134 138 98 138 60 C138 38 155 24 173 24 C184 24 192 31 192 38 C192 31 200 24 211 24 C229 24 246 38 246 60 C246 98 192 134 192 134 Z" fill="none" stroke="#9aa0a6" stroke-width="2"/>
+
+                        <g transform="translate(215, 18) rotate(14)">
+                            <path id="bow-left" d="M0 0 C-18 -14 -30 4 -6 6 Z" fill="#768668" stroke="#536146" stroke-width="1"/>
+                            <path id="bow-right" d="M0 0 C18 -14 30 4 6 6 Z" fill="#8a9a7b" stroke="#536146" stroke-width="1"/>
+                            <path id="bow-tail-left" d="M-3 4 L-14 26 L-7 24 L0 6 Z" fill="#6b7b5d"/>
+                            <path id="bow-tail-right" d="M3 4 L14 26 L7 24 L0 6 Z" fill="#768668"/>
+                            <circle id="bow-center" cx="0" cy="2" r="4.5" fill="#a3b394" stroke="#536146" stroke-width="1"/>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- TARJETA INFERIOR: Carta Principal ("Dearest prince") -->
+        <div id="letter-card" class="relative w-[96%] sm:w-[92%] -mt-3 bg-[#879778] p-2.5 sm:p-3.5 paper-shadow transform rotate-[1.7deg] z-20 transition-colors duration-300">
+            <div class="cream-paper-texture w-full h-full px-5 py-5 sm:px-7 sm:py-6 relative">
+
+                <!-- Encabezado y Sticker de Conejitos ("Plushies for us!!!") -->
+                <div class="flex items-start justify-between gap-2 mb-2">
+                    <h1 id="display-title" data-focus="input-title" class="font-title-serif italic text-3xl sm:text-4xl text-[#6b7b5d] tracking-tight cursor-pointer select-none pt-1 transition-colors duration-300">
+                        Dearest prince
+                    </h1>
+
+                    <div class="float-sticker flex flex-col items-center -mt-3 -mr-1 select-none">
+                        <svg viewBox="0 0 120 95" class="w-20 h-16 sm:w-24 sm:h-20 drop-shadow-md">
+                            <g transform="translate(8, 5)">
+                                <ellipse cx="18" cy="24" rx="6" ry="18" transform="rotate(15 18 24)" fill="#dec8c3" stroke="#bfa59f" stroke-width="1"/>
+                                <ellipse cx="38" cy="24" rx="6" ry="18" transform="rotate(-12 38 24)" fill="#e8d5d0" stroke="#bfa59f" stroke-width="1"/>
+                                <ellipse cx="28" cy="58" rx="14" ry="19" fill="#eadad6"/>
+                                <circle cx="28" cy="26" r="14" fill="#efe2df"/>
+                                <ellipse cx="20" cy="76" rx="6" ry="5" fill="#e2ceca"/>
+                                <ellipse cx="35" cy="76" rx="6" ry="5" fill="#e2ceca"/>
+                                <circle cx="23" cy="25" r="1.6" fill="#4a3e3c"/>
+                                <circle cx="32" cy="25" r="1.6" fill="#4a3e3c"/>
+                                <circle cx="27.5" cy="29" r="1.8" fill="#c98e8e"/>
+                            </g>
+
+                            <g transform="translate(52, 8)">
+                                <ellipse id="bunny-ear-l" cx="16" cy="24" rx="6" ry="18" transform="rotate(14 16 24)" fill="#6b7b5d" stroke="#536146" stroke-width="1"/>
+                                <ellipse id="bunny-ear-r" cx="38" cy="24" rx="6" ry="18" transform="rotate(-16 38 24)" fill="#768668" stroke="#536146" stroke-width="1"/>
+                                <ellipse id="bunny-body" cx="27" cy="56" rx="14" ry="18" fill="#738365"/>
+                                <circle id="bunny-head" cx="27" cy="25" r="14" fill="#819172"/>
+                                <path id="bunny-arm" d="M16 46 Q4 44 -4 50 Q-6 55 2 55 L18 53 Z" fill="#819172" stroke="#536146" stroke-width="0.8"/>
+                                <ellipse id="bunny-foot-l" cx="20" cy="73" rx="6" ry="5" fill="#6b7b5d"/>
+                                <ellipse id="bunny-foot-r" cx="34" cy="73" rx="6" ry="5" fill="#6b7b5d"/>
+                                <circle cx="22" cy="24" r="1.6" fill="#2d3626"/>
+                                <circle cx="31" cy="24" r="1.6" fill="#2d3626"/>
+                                <circle cx="26.5" cy="28" r="1.8" fill="#536146"/>
+                            </g>
+                        </svg>
+                        <span id="display-sticker-label" class="bg-[#f4f2ec] border border-[#dcd8cc] px-2 py-0.5 text-[10px] sm:text-xs font-semibold text-[#5b6652] shadow-sm -mt-1">
+                            Plushies for us!!!
+                        </span>
+                    </div>
+                </div>
+
+                <!-- ÁREA INTERACTIVA DE PENSAMIENTOS -->
+                <div id="interactive-letter-area" class="letter-text-stage cursor-crosshair">
+
+                    <!-- CAPA 1: Pensamientos Visibles -->
+                    <div id="visible-layer" class="layer-visible font-body-serif text-[12.5px] sm:text-[14px] leading-[1.68] text-justify">
+                        <div class="float-left mr-3.5 mb-1 mt-[78px] sm:mt-[88px] w-[42%] sm:w-[40%] bg-white p-1.5 shadow-md border border-[#e3e0d8] transform -rotate-[1.5deg] relative">
+                            <div class="absolute -bottom-2 -right-2 w-10 h-3.5 bg-[#ece9e0]/90 shadow-sm transform -rotate-12"></div>
+                            <div class="w-full aspect-[1.35/1] overflow-hidden bg-[#2b2b2b] relative">
+                                <svg id="default-svg-polaroid" viewBox="0 0 200 150" class="w-full h-full block">
+                                    <rect width="200" height="150" fill="#2e2e2e"/>
+                                    <circle cx="100" cy="40" r="65" fill="rgba(255,255,255,0.08)"/>
+                                    <circle cx="68" cy="56" r="18" fill="#d4d4d4"/>
+                                    <path d="M50 53 C52 36 84 36 86 53 C80 46 68 47 64 51 C59 47 53 48 50 53 Z" fill="#1c1c1c"/>
+                                    <path d="M32 150 C34 104 48 86 68 86 C86 86 98 104 102 150 Z" fill="#a8a8a8"/>
+                                    <circle cx="132" cy="54" r="18" fill="#c7c7c7"/>
+                                    <path d="M114 52 C116 35 148 35 150 52 C144 45 134 46 128 50 C123 46 118 47 114 52 Z" fill="#141414"/>
+                                    <path d="M98 150 C102 102 114 85 132 85 C152 85 166 102 168 150 Z" fill="#1f1f1f"/>
+                                </svg>
+                                <img id="img-polaroid" src="" alt="Recuerdo en blanco y negro" class="w-full h-full object-cover grayscale contrast-115 hidden">
+                            </div>
+                        </div>
+                        <p id="display-visible-text" class="whitespace-pre-line">Mi amado Yoshinori, mi Teerak. Cada una de tus palabras provoca una emoción totalmente descomunal, haciendo que mi corazón se desborde de amor por ti. No sé cómo pasó, ni en qué momento con exactitud pero desde que terminé completa y perdidamente enamorado de ti, mi vida tomó un nuevo sentido; sencillamente, me siento la persona más feliz y afortunada del mundo. Lograste convertirme en tuyo con tu preciosa sonrisa, con esos ojitos grandes y encantadores que tienes. También con esos chistes que a veces parecen tan malos pero siempre me hacen reír. Y me gusta creer que esto no es una simple coincidencia. Yo nací destinado a entregarte mi corazón. ¡Mi respuesta es un sí! Mi precioso Faen.</p>
+                    </div>
+
+                    <!-- CAPA 2: Pensamientos Ocultos -->
+                    <div id="secret-layer" class="layer-secret theme-locket p-2 -m-2 font-secret-handwriting text-[17px] sm:text-[20px] leading-[1.42] pointer-events-none select-none">
+                        <div class="float-left mr-3.5 mb-1 mt-[78px] sm:mt-[88px] w-[42%] sm:w-[40%] aspect-[1.35/1] opacity-0 pointer-events-none"></div>
+                        <div class="flex items-center gap-1.5 text-xs font-body-serif italic opacity-85 mb-1">
+                            <span id="secret-badge-icon">💚</span>
+                            <span id="secret-badge-text">Pensamientos secretos del corazón:</span>
+                        </div>
+                        <p id="display-secret-text" class="whitespace-pre-line">La verdad es que me tiemblan las manos al escribir cada línea... Tenía tanto miedo de no ser suficiente para alguien tan brillante como tú, pero cuando me miras así siento que el mundo entero se detiene. No es solo un "sí" hoy: es querer despertar a tu lado cada mañana, guardar tus notas en secreto y amarte incluso en silencio cuando no estás cerca. Eres mi hogar, Yoshinori.</p>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL PARA COMPARTIR ENLACE -->
+    <div id="share-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+        <div class="bg-[#fcfaf5] border-2 border-[#8a9a7b] rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-[#e2dfd5] pb-3">
+                <h3 class="font-title-serif italic text-2xl font-bold text-[#45543b] flex items-center gap-2">
+                    <span>🔗</span>
+                    <span>Compartir Carta Secreta</span>
+                </h3>
+                <button type="button" id="btn-close-share" class="p-1.5 rounded-lg text-[#5c6655] hover:bg-[#ebe8e1] font-bold transition-colors cursor-pointer">
+                    ✕
+                </button>
+            </div>
+
+            <p class="text-xs sm:text-sm text-[#4e5945] leading-relaxed">
+                Este enlace guarda tu diseño completo (colores elegidos, textos visibles, pensamientos ocultos, lente y fotos). Quien lo abra verá la carta en modo lectura sin opción de editarla.
+            </p>
+
+            <div class="space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                    <label for="share-url-input" class="block text-xs font-semibold text-[#526047]">Enlace único de tu scrapbook:</label>
+                    <span id="share-status-badge" class="text-[11px] px-2 py-0.5 rounded-full bg-[#eef3ea] text-[#45543b] font-medium">Listo</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="text" id="share-url-input" readonly class="w-full px-3 py-2 rounded-xl bg-[#f2efe8] border border-[#cbd4c2] text-xs text-[#3a4235] font-mono focus:outline-none">
+                    <button type="button" id="btn-copy-share" class="shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#5f7153] hover:bg-[#4c5c42] text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer">
+                        <span>📋</span>
+                        <span>Copiar enlace</span>
+                    </button>
+                </div>
+                <p id="share-detail-note" class="text-[11px] text-[#67735e] leading-snug"></p>
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-[#e8e4da]">
+                <button type="button" id="btn-preview-recipient" class="text-xs font-semibold text-[#5f7153] hover:underline cursor-pointer">
+                    👁️ Vista previa como destinatario
+                </button>
+                <button type="button" id="btn-close-share-bottom" class="px-4 py-1.5 rounded-xl bg-[#e8ece3] hover:bg-[#dce3d4] text-[#45543b] text-xs font-semibold transition-colors cursor-pointer">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICACIÓN TOAST -->
+    <div id="toast-notification" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 translate-y-3">
+        <div class="bg-[#45543b] text-[#f9f7f2] px-4 py-2 rounded-full text-xs sm:text-sm shadow-xl flex items-center gap-2 border border-[#8a9a7b]">
+            <span>✨</span>
+            <span id="toast-message">Listo</span>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // =========================================================================
+            // 1. PALETAS DE COLOR Y DATOS POR DEFECTO
+            // =========================================================================
+            const COLOR_PALETTES = {
+                sage: {
+                    name: 'Verde Salvia',
+                    card: '#8a9a7b',
+                    paper: '#f7f4eb',
+                    inkVisible: '#3a4235',
+                    inkSecret: '#8b1e3f'
+                },
+                rose: {
+                    name: 'Rosa Empolvado',
+                    card: '#c9939b',
+                    paper: '#fdf6f7',
+                    inkVisible: '#4a2c32',
+                    inkSecret: '#7a1c4b'
+                },
+                burgundy: {
+                    name: 'Borgoña & Pergamino',
+                    card: '#6e2c39',
+                    paper: '#f4ebd9',
+                    inkVisible: '#2e181c',
+                    inkSecret: '#9e1b32'
+                },
+                midnight: {
+                    name: 'Azul Medianoche',
+                    card: '#33475b',
+                    paper: '#eef2f6',
+                    inkVisible: '#1c2833',
+                    inkSecret: '#1f618d'
+                },
+                lavender: {
+                    name: 'Lavanda Vintage',
+                    card: '#887ba3',
+                    paper: '#f6f4fa',
+                    inkVisible: '#2f293b',
+                    inkSecret: '#5b2c6f'
+                },
+                gothic: {
+                    name: 'Obsidiana & Carmesí',
+                    card: '#262629',
+                    paper: '#1a1a1d',
+                    inkVisible: '#d4d4d8',
+                    inkSecret: '#e11d48'
+                }
+            };
+
+            const DEFAULT_DATA = {
+                title: "Dearest prince",
+                stickerLabel: "Plushies for us!!!",
+                tags: ["To", "my", "cutie", "pie"],
+                visibleText: `Mi amado Yoshinori, mi Teerak. Cada una de tus palabras provoca una emoción totalmente descomunal, haciendo que mi corazón se desborde de amor por ti. No sé cómo pasó, ni en qué momento con exactitud pero desde que terminé completa y perdidamente enamorado de ti, mi vida tomó un nuevo sentido; sencillamente, me siento la persona más feliz y afortunada del mundo. Lograste convertirme en tuyo con tu preciosa sonrisa, con esos ojitos grandes y encantadores que tienes. También con esos chistes que a veces parecen tan malos pero siempre me hacen reír. Y me gusta creer que esto no es una simple coincidencia. Yo nací destinado a entregarte mi corazón. ¡Mi respuesta es un sí! Mi precioso Faen.`,
+                secretText: `La verdad es que me tiemblan las manos al escribir cada línea... Tenía tanto miedo de no ser suficiente para alguien tan brillante como tú, pero cuando me miras así siento que el mundo entero se detiene. No es solo un "sí" hoy: es querer despertar a tu lado cada mañana, guardar tus notas en secreto y amarte incluso en silencio cuando no estás cerca. Eres mi hogar, Yoshinori.`,
+                colors: { ...COLOR_PALETTES.sage },
+                tool: 'locket',
+                locketLeft: '',
+                locketRight: '',
+                polaroid: ''
+            };
+
+            const TOOL_CONFIG = {
+                locket: {
+                    radius: 80,
+                    themeClass: 'theme-locket',
+                    badgeIcon: '💚',
+                    badgeText: 'Pensamientos secretos del corazón:',
+                    helper: 'Desliza el Relicario de Cristal sobre los párrafos de la carta para revelar sus verdaderos pensamientos...',
+                    svg: `
+                    <svg width="170" height="170" viewBox="0 0 160 160">
+                        <defs>
+                            <radialGradient id="locketGlass" cx="40%" cy="35%" r="60%">
+                                <stop offset="0%" stop-color="rgba(255,255,255,0.36)"/>
+                                <stop offset="75%" stop-color="rgba(182,214,162,0.12)"/>
+                                <stop offset="100%" stop-color="rgba(118,153,96,0.45)"/>
+                            </radialGradient>
+                            <linearGradient id="silverRim" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#ffffff"/>
+                                <stop offset="50%" stop-color="#b8c0c8"/>
+                                <stop offset="100%" stop-color="#f2f5f8"/>
+                            </linearGradient>
+                        </defs>
+                        <circle cx="80" cy="82" r="73" fill="url(#locketGlass)" stroke="url(#silverRim)" stroke-width="5"/>
+                        <circle cx="80" cy="82" r="67" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="1.2" stroke-dasharray="4 4"/>
+                        <circle cx="80" cy="7" r="5" fill="none" stroke="url(#silverRim)" stroke-width="3"/>
+                        <path d="M36 46 Q52 28 74 28" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="3" stroke-linecap="round"/>
+                    </svg>`
+                },
+                candle: {
+                    radius: 84,
+                    themeClass: 'theme-candle',
+                    badgeIcon: '🕯️',
+                    badgeText: 'Revelado con tinta simpática y Luz de Vela:',
+                    helper: 'Acerca la Luz de Vela al papel para revelar la tinta invisible...',
+                    svg: `
+                    <svg width="176" height="176" viewBox="0 0 170 170">
+                        <defs>
+                            <radialGradient id="candleAura" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="rgba(255,214,102,0.38)"/>
+                                <stop offset="65%" stop-color="rgba(255,166,43,0.16)"/>
+                                <stop offset="100%" stop-color="rgba(255,140,0,0)"/>
+                            </radialGradient>
+                        </defs>
+                        <circle cx="85" cy="85" r="80" fill="url(#candleAura)" stroke="rgba(235,168,68,0.48)" stroke-width="1.5" stroke-dasharray="6 4"/>
+                        <g transform="translate(85, 136)">
+                            <rect x="-7" y="4" width="14" height="22" rx="2" fill="#fcf6e8" stroke="#d4c3a3" stroke-width="1"/>
+                            <path d="M0 -14 C6 -5 6 2 0 4 C-6 2 -6 -5 0 -14 Z" fill="#ff9d2e"/>
+                            <path d="M0 -9 C3 -4 3 0 0 2 C-3 0 -3 -4 0 -9 Z" fill="#fff4b8"/>
+                        </g>
+                    </svg>`
+                },
+                moonlight: {
+                    radius: 82,
+                    themeClass: 'theme-moonlight',
+                    badgeIcon: '🌙',
+                    badgeText: 'Bajo la Luz de Luna se lee la verdad:',
+                    helper: 'Pasa la Luz de Luna sobre las palabras para descubrir el secreto...',
+                    svg: `
+                    <svg width="172" height="172" viewBox="0 0 170 170">
+                        <defs>
+                            <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="rgba(210,230,255,0.34)"/>
+                                <stop offset="75%" stop-color="rgba(160,195,245,0.16)"/>
+                                <stop offset="100%" stop-color="rgba(120,160,220,0.48)"/>
+                            </radialGradient>
+                        </defs>
+                        <circle cx="85" cy="85" r="76" fill="url(#moonGlow)" stroke="rgba(220,235,255,0.88)" stroke-width="2.5"/>
+                        <path d="M85 12 A8 8 0 1 0 93 22 A6 6 0 1 1 85 12 Z" fill="#fff8d6"/>
+                        <circle cx="32" cy="42" r="1.8" fill="#ffffff"/>
+                        <circle cx="138" cy="48" r="2" fill="#ffffff"/>
+                        <circle cx="128" cy="134" r="1.5" fill="#ffffff"/>
+                    </svg>`
+                }
+            };
+
+            const state = {
+                mode: 'read',
+                isSharedViewer: false,
+                currentTool: 'locket',
+                revealAll: false,
+                data: JSON.parse(JSON.stringify(DEFAULT_DATA))
+            };
+
+            // =========================================================================
+            // 2. CODIFICACIÓN / COMPRESIÓN DE ENLACES COMPARTIBLES
+            // =========================================================================
+            function bytesToBase64Url(bytes) {
+                let binary = '';
+                const chunkSize = 0x8000;
+                for (let i = 0; i < bytes.length; i += chunkSize) {
+                    const sub = bytes.subarray(i, i + chunkSize);
+                    binary += String.fromCharCode.apply(null, sub);
+                }
+                return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+            }
+
+            function base64UrlToBytes(str) {
+                let b64 = String(str || '').trim().replace(/-/g, '+').replace(/_/g, '/');
+                while (b64.length % 4) {
+                    b64 += '=';
+                }
+                const binary = atob(b64);
+                const bytes = new Uint8Array(binary.length);
+                for (let i = 0; i < binary.length; i++) {
+                    bytes[i] = binary.charCodeAt(i);
+                }
+                return bytes;
+            }
+
+            async function compressPayloadToToken(obj) {
+                const json = JSON.stringify(obj);
+                const rawBytes = new TextEncoder().encode(json);
+
+                if (typeof CompressionStream === 'function') {
+                    try {
+                        const cs = new CompressionStream('deflate-raw');
+                        const writer = cs.writable.getWriter();
+                        writer.write(rawBytes);
+                        writer.close();
+                        const compressedBuffer = await new Response(cs.readable).arrayBuffer();
+                        return 'z1.' + bytesToBase64Url(new Uint8Array(compressedBuffer));
+                    } catch (e) {
+                        // Respaldo sin compresión si el navegador no soporta deflate-raw
+                    }
+                }
+                return 'b1.' + bytesToBase64Url(rawBytes);
+            }
+
+            async function decompressTokenToPayload(token) {
+                const clean = String(token || '').trim();
+                if (!clean) {
+                    throw new Error('Token vacío');
+                }
+
+                if (clean.startsWith('z1.')) {
+                    const compressedBytes = base64UrlToBytes(clean.slice(3));
+                    if (typeof DecompressionStream === 'function') {
+                        const ds = new DecompressionStream('deflate-raw');
+                        const writer = ds.writable.getWriter();
+                        writer.write(compressedBytes);
+                        writer.close();
+                        const decompressedBuffer = await new Response(ds.readable).arrayBuffer();
+                        const json = new TextDecoder().decode(new Uint8Array(decompressedBuffer));
+                        return JSON.parse(json);
+                    }
+                    throw new Error('DecompressionStream no disponible');
+                }
+
+                if (clean.startsWith('b1.')) {
+                    const rawBytes = base64UrlToBytes(clean.slice(3));
+                    const json = new TextDecoder().decode(rawBytes);
+                    return JSON.parse(json);
+                }
+
+                const rawBytes = base64UrlToBytes(clean);
+                const json = new TextDecoder().decode(rawBytes);
+                return JSON.parse(json);
+            }
+
+            function normalizeShareData(parsed) {
+                if (!parsed || typeof parsed !== 'object') {
+                    throw new Error('Estructura de datos inválida');
+                }
+                const src = parsed.d && typeof parsed.d === 'object' ? parsed.d : parsed;
+                const tagsArray = Array.isArray(src.g)
+                    ? src.g
+                    : (Array.isArray(src.tags) ? src.tags : DEFAULT_DATA.tags);
+
+                const rawColors = src.c || src.colors || {};
+                const cleanTool = ['locket', 'candle', 'moonlight'].includes(src.l || src.tool)
+                    ? (src.l || src.tool)
+                    : 'locket';
+
+                return {
+                    ...JSON.parse(JSON.stringify(DEFAULT_DATA)),
+                    title: typeof (src.t ?? src.title) === 'string' ? (src.t ?? src.title) : DEFAULT_DATA.title,
+                    stickerLabel: typeof (src.s ?? src.stickerLabel) === 'string' ? (src.s ?? src.stickerLabel) : DEFAULT_DATA.stickerLabel,
+                    tags: [
+                        tagsArray[0] ?? DEFAULT_DATA.tags[0],
+                        tagsArray[1] ?? DEFAULT_DATA.tags[1],
+                        tagsArray[2] ?? DEFAULT_DATA.tags[2],
+                        tagsArray[3] ?? DEFAULT_DATA.tags[3]
+                    ],
+                    visibleText: typeof (src.v ?? src.visibleText) === 'string' ? (src.v ?? src.visibleText) : DEFAULT_DATA.visibleText,
+                    secretText: typeof (src.h ?? src.secretText) === 'string' ? (src.h ?? src.secretText) : DEFAULT_DATA.secretText,
+                    colors: {
+                        card: rawColors.card || DEFAULT_DATA.colors.card,
+                        paper: rawColors.paper || DEFAULT_DATA.colors.paper,
+                        inkVisible: rawColors.inkVisible || DEFAULT_DATA.colors.inkVisible,
+                        inkSecret: rawColors.inkSecret || DEFAULT_DATA.colors.inkSecret
+                    },
+                    tool: cleanTool,
+                    locketLeft: typeof (src.il ?? src.locketLeft) === 'string' ? (src.il ?? src.locketLeft) : '',
+                    locketRight: typeof (src.ir ?? src.locketRight) === 'string' ? (src.ir ?? src.locketRight) : '',
+                    polaroid: typeof (src.ip ?? src.polaroid) === 'string' ? (src.ip ?? src.polaroid) : ''
+                };
+            }
+
+            // =========================================================================
+            // 3. MANIPULACIÓN DE COLORES Y ESTILOS VISUALES
+            // =========================================================================
+            function adjustHexColor(hex, percent) {
+                try {
+                    const clean = String(hex || '').replace('#', '');
+                    if (!/^[0-9a-fA-F]{6}$/.test(clean)) return hex || '#8a9a7b';
+                    const num = parseInt(clean, 16);
+                    const amt = Math.round(2.55 * percent);
+                    const R = Math.min(255, Math.max(0, (num >> 16) + amt));
+                    const G = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amt));
+                    const B = Math.min(255, Math.max(0, (num & 0x0000FF) + amt));
+                    return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+                } catch (e) {
+                    return hex;
+                }
+            }
+
+            function applyColorTheme(colors) {
+                const c = { ...COLOR_PALETTES.sage, ...(colors || {}) };
+                const root = document.documentElement;
+
+                const cardDark = adjustHexColor(c.card, -15);
+                const cardDeep = adjustHexColor(c.card, -25);
+                const cardLight = adjustHexColor(c.card, 12);
+
+                root.style.setProperty('--card-color', c.card);
+                root.style.setProperty('--card-dark', cardDark);
+                root.style.setProperty('--card-deep', cardDeep);
+                root.style.setProperty('--card-light', cardLight);
+                root.style.setProperty('--bg-woven', adjustHexColor(c.card, -12));
+                root.style.setProperty('--paper-color', c.paper);
+                root.style.setProperty('--ink-visible', c.inkVisible);
+                root.style.setProperty('--ink-secret', c.inkSecret);
+
+                const topCard = document.getElementById('top-scrapbook-card');
+                const letterCard = document.getElementById('letter-card');
+                const titleEl = document.getElementById('display-title');
+                const ovalEl = document.getElementById('doily-center-oval');
+
+                if (topCard) topCard.style.backgroundColor = c.card;
+                if (letterCard) letterCard.style.backgroundColor = adjustHexColor(c.card, -3);
+                if (titleEl) titleEl.style.color = cardDark;
+                if (ovalEl) ovalEl.setAttribute('fill', c.paper);
+
+                const setAttr = (id, attr, val) => {
+                    const el = document.getElementById(id);
+                    if (el) el.setAttribute(attr, val);
+                };
+                setAttr('env-stop-1', 'stop-color', c.card);
+                setAttr('env-stop-2', 'stop-color', cardDark);
+                setAttr('env-flap-1', 'stop-color', cardLight);
+                setAttr('env-flap-2', 'stop-color', adjustHexColor(c.card, -10));
+                setAttr('env-rect', 'stroke', cardDeep);
+                setAttr('env-fold-bottom', 'fill', adjustHexColor(c.card, -10));
+                setAttr('env-fold-left', 'fill', adjustHexColor(c.card, -6));
+                setAttr('env-fold-right', 'fill', adjustHexColor(c.card, -14));
+
+                setAttr('bow-left', 'fill', adjustHexColor(c.card, -10));
+                setAttr('bow-left', 'stroke', cardDeep);
+                setAttr('bow-right', 'fill', c.card);
+                setAttr('bow-right', 'stroke', cardDeep);
+                setAttr('bow-tail-left', 'fill', cardDark);
+                setAttr('bow-tail-right', 'fill', adjustHexColor(c.card, -10));
+                setAttr('bow-center', 'fill', cardLight);
+                setAttr('bow-center', 'stroke', cardDeep);
+
+                setAttr('bunny-ear-l', 'fill', cardDark);
+                setAttr('bunny-ear-l', 'stroke', cardDeep);
+                setAttr('bunny-ear-r', 'fill', adjustHexColor(c.card, -10));
+                setAttr('bunny-ear-r', 'stroke', cardDeep);
+                setAttr('bunny-body', 'fill', adjustHexColor(c.card, -12));
+                setAttr('bunny-head', 'fill', adjustHexColor(c.card, -6));
+                setAttr('bunny-arm', 'fill', adjustHexColor(c.card, -6));
+                setAttr('bunny-arm', 'stroke', cardDeep);
+                setAttr('bunny-foot-l', 'fill', cardDark);
+                setAttr('bunny-foot-r', 'fill', cardDark);
+
+                const setVal = (id, val) => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = val;
+                };
+                setVal('color-card', c.card);
+                setVal('color-paper', c.paper);
+                setVal('color-ink-visible', c.inkVisible);
+                setVal('color-ink-secret', c.inkSecret);
+            }
+
+            // =========================================================================
+            // 4. RENDERIZADO DE CONTENIDO Y PERSISTENCIA CON RESPALDO
+            // =========================================================================
+            function renderAll() {
+                const d = state.data;
+                applyColorTheme(d.colors);
+
+                const setText = (id, txt) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = txt ?? '';
+                };
+                const setInputVal = (id, val) => {
+                    const el = document.getElementById(id);
+                    if (el && document.activeElement !== el) el.value = val ?? '';
+                };
+
+                setText('display-title', d.title);
+                setText('display-sticker-label', d.stickerLabel);
+                setText('display-tag-1', d.tags[0] || '');
+                setText('display-tag-2', d.tags[1] || '');
+                setText('display-tag-3', d.tags[2] || '');
+                setText('display-tag-4', d.tags[3] || '');
+                setText('display-visible-text', d.visibleText);
+                setText('display-secret-text', d.secretText);
+
+                const imgLeft = document.getElementById('img-locket-left');
+                const svgLeft = document.getElementById('default-svg-left');
+                if (imgLeft && svgLeft) {
+                    if (d.locketLeft) {
+                        imgLeft.setAttribute('href', d.locketLeft);
+                        imgLeft.style.display = 'block';
+                        svgLeft.style.display = 'none';
+                    } else {
+                        imgLeft.style.display = 'none';
+                        svgLeft.style.display = 'block';
+                    }
+                }
+
+                const imgRight = document.getElementById('img-locket-right');
+                const svgRight = document.getElementById('default-svg-right');
+                if (imgRight && svgRight) {
+                    if (d.locketRight) {
+                        imgRight.setAttribute('href', d.locketRight);
+                        imgRight.style.display = 'block';
+                        svgRight.style.display = 'none';
+                    } else {
+                        imgRight.style.display = 'none';
+                        svgRight.style.display = 'block';
+                    }
+                }
+
+                const imgPolaroid = document.getElementById('img-polaroid');
+                const svgPolaroid = document.getElementById('default-svg-polaroid');
+                if (imgPolaroid && svgPolaroid) {
+                    if (d.polaroid) {
+                        imgPolaroid.src = d.polaroid;
+                        imgPolaroid.classList.remove('hidden');
+                        svgPolaroid.classList.add('hidden');
+                    } else {
+                        imgPolaroid.classList.add('hidden');
+                        svgPolaroid.classList.remove('hidden');
+                    }
+                }
+
+                setInputVal('input-title', d.title);
+                setInputVal('input-sticker-label', d.stickerLabel);
+                setInputVal('input-tag-1', d.tags[0] || '');
+                setInputVal('input-tag-2', d.tags[1] || '');
+                setInputVal('input-tag-3', d.tags[2] || '');
+                setInputVal('input-tag-4', d.tags[3] || '');
+                setInputVal('input-visible-text', d.visibleText);
+                setInputVal('input-secret-text', d.secretText);
+            }
+
+            function saveToStorage(shareId = null) {
+                try {
+                    const serialized = JSON.stringify(state.data);
+                    localStorage.setItem('scrapbook_secret_letter_v2', serialized);
+                    if (shareId) {
+                        localStorage.setItem(`scrapbook_share_${shareId}`, serialized);
+                        try {
+                            window.name = `SCRAPBOOK_SHARE:${shareId}:${serialized}`;
+                        } catch (e) {}
+                    }
+                } catch (e) {}
+            }
+
+            function loadLocalFallback() {
+                try {
+                    const saved = localStorage.getItem('scrapbook_secret_letter_v2');
+                    if (saved) {
+                        state.data = normalizeShareData(JSON.parse(saved));
+                    }
+                } catch (e) {}
+            }
+
+            function loadBackupById(shareId) {
+                if (!shareId) return null;
+                try {
+                    const fromLocal = localStorage.getItem(`scrapbook_share_${shareId}`);
+                    if (fromLocal) {
+                        return normalizeShareData(JSON.parse(fromLocal));
+                    }
+                } catch (e) {}
+
+                try {
+                    const prefix = `SCRAPBOOK_SHARE:${shareId}:`;
+                    if (typeof window.name === 'string' && window.name.startsWith(prefix)) {
+                        const raw = window.name.slice(prefix.length);
+                        return normalizeShareData(JSON.parse(raw));
+                    }
+                } catch (e) {}
+
+                return null;
+            }
+
+            function extractShareParams() {
+                let token = '';
+                let shareId = '';
+
+                try {
+                    const hash = window.location.hash || '';
+                    if (hash.startsWith('#')) {
+                        const hashParams = new URLSearchParams(hash.slice(1));
+                        token = hashParams.get('share') || hashParams.get('s') || '';
+                        shareId = hashParams.get('sid') || '';
+                    }
+                } catch (e) {}
+
+                if (!token || !shareId) {
+                    try {
+                        const searchParams = new URLSearchParams(window.location.search || '');
+                        if (!token) token = searchParams.get('share') || searchParams.get('s') || '';
+                        if (!shareId) shareId = searchParams.get('sid') || '';
+                    } catch (e) {}
+                }
+
+                return { token, shareId };
+            }
+
+            function setSharedViewerUI(isShared) {
+                const shared = Boolean(isShared);
+                state.isSharedViewer = shared;
+                document.body.classList.toggle('shared-link-mode', shared);
+
+                const btnEdit = document.getElementById('btn-mode-edit');
+                const modeGroup = document.getElementById('mode-switch-group');
+                const editorDrawer = document.getElementById('editor-drawer');
+                const sharedBanner = document.getElementById('shared-mode-banner');
+
+                document.querySelectorAll('[data-focus]').forEach(el => {
+                    el.style.cursor = shared ? 'default' : 'pointer';
+                });
+
+                if (shared) {
+                    if (btnEdit) {
+                        btnEdit.remove();
+                    }
+                    if (modeGroup) {
+                        modeGroup.classList.add('hidden');
+                    }
+                    if (editorDrawer) {
+                        editorDrawer.classList.add('hidden');
+                    }
+                    if (sharedBanner) {
+                        sharedBanner.classList.remove('hidden');
+                    }
+                    state.mode = 'read';
+                } else {
+                    if (modeGroup) {
+                        modeGroup.classList.remove('hidden');
+                    }
+                    if (btnEdit) {
+                        btnEdit.classList.remove('hidden');
+                    }
+                    if (sharedBanner) {
+                        sharedBanner.classList.add('hidden');
+                    }
+                }
+            }
+
+            async function loadInitialStateAsync() {
+                const { token, shareId } = extractShareParams();
+                const hasShareParam = Boolean(token || shareId);
+
+                if (!hasShareParam) {
+                    setSharedViewerUI(false);
+                    loadLocalFallback();
+                    renderAll();
+                    setTool(state.data.tool || 'locket');
+                    return;
+                }
+
+                setSharedViewerUI(true);
+
+                let loadedFromShare = false;
+                let hadError = false;
+
+                if (token) {
+                    try {
+                        const decoded = await decompressTokenToPayload(token);
+                        state.data = normalizeShareData(decoded);
+                        loadedFromShare = true;
+                        saveToStorage(shareId || decoded.sid || null);
+                    } catch (err) {
+                        hadError = true;
+                        const backup = loadBackupById(shareId);
+                        if (backup) {
+                            state.data = backup;
+                            loadedFromShare = true;
+                        }
+                    }
+                } else if (shareId) {
+                    const backup = loadBackupById(shareId);
+                    if (backup) {
+                        state.data = backup;
+                        loadedFromShare = true;
+                    } else {
+                        hadError = true;
+                    }
+                }
+
+                if (!loadedFromShare) {
+                    loadLocalFallback();
+                }
+
+                renderAll();
+                setTool(state.data.tool || 'locket');
+                setMode('read');
+
+                if (hadError && !loadedFromShare) {
+                    showToast('Aviso: el enlace estaba incompleto; se cargó la carta disponible');
+                } else if (hadError && loadedFromShare) {
+                    showToast('Carta cargada desde respaldo local del navegador');
+                }
+            }
+
+            // =========================================================================
+            // 5. MODOS DE INTERACCIÓN (LECTURA VS EDICIÓN) Y HERRAMIENTAS
+            // =========================================================================
+            function setMode(newMode) {
+                if (newMode === 'edit' && state.isSharedViewer) {
+                    newMode = 'read';
+                }
+                state.mode = newMode;
+                const btnRead = document.getElementById('btn-mode-read');
+                const btnEdit = document.getElementById('btn-mode-edit');
+                const editorDrawer = document.getElementById('editor-drawer');
+                const toolGroup = document.getElementById('tool-selector-group');
+                const helperText = document.getElementById('helper-text');
+                const letterArea = document.getElementById('interactive-letter-area');
+
+                if (newMode === 'edit') {
+                    if (btnEdit) btnEdit.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-[#5f7153] text-white shadow-sm cursor-pointer";
+                    if (btnRead) btnRead.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all text-[#4b5941] hover:bg-white/70 cursor-pointer";
+                    if (editorDrawer) editorDrawer.classList.remove('hidden');
+                    if (toolGroup) toolGroup.classList.add('opacity-50', 'pointer-events-none');
+                    if (helperText) helperText.textContent = "Editando carta: escribe los pensamientos visibles y ocultos, o cambia la paleta de colores.";
+                    if (letterArea) letterArea.style.cursor = 'default';
+                    hideMagicCursor();
+                } else {
+                    if (btnRead) btnRead.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-[#5f7153] text-white shadow-sm cursor-pointer";
+                    if (btnEdit) {
+                        btnEdit.className = `flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all text-[#4b5941] hover:bg-white/70 cursor-pointer ${state.isSharedViewer ? 'hidden' : ''}`;
+                    }
+                    if (editorDrawer) editorDrawer.classList.add('hidden');
+                    if (toolGroup) toolGroup.classList.remove('opacity-50', 'pointer-events-none');
+                    if (helperText) helperText.textContent = TOOL_CONFIG[state.currentTool].helper;
+                    if (letterArea) letterArea.style.cursor = 'crosshair';
+                }
+            }
+
+            function setTool(toolName) {
+                if (!TOOL_CONFIG[toolName]) return;
+                state.currentTool = toolName;
+                state.data.tool = toolName;
+                const config = TOOL_CONFIG[toolName];
+
+                document.querySelectorAll('.tool-btn').forEach(btn => {
+                    btn.className = "tool-btn flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold border border-transparent text-[#5c6655] hover:bg-[#f0ede4] transition-all cursor-pointer";
+                });
+                const activeBtn = document.getElementById(`tool-btn-${toolName}`);
+                if (activeBtn) {
+                    activeBtn.className = "tool-btn flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition-all bg-[#eef3ea] border-[#788c6a] text-[#35442b] shadow-sm cursor-pointer";
+                }
+
+                const secretLayer = document.getElementById('secret-layer');
+                if (secretLayer) {
+                    secretLayer.classList.remove('theme-locket', 'theme-candle', 'theme-moonlight');
+                    secretLayer.classList.add(config.themeClass);
+                }
+
+                const badgeIcon = document.getElementById('secret-badge-icon');
+                const badgeText = document.getElementById('secret-badge-text');
+                if (badgeIcon) badgeIcon.textContent = config.badgeIcon;
+                if (badgeText) badgeText.textContent = config.badgeText;
+
+                const cursorEl = document.getElementById('magic-tool-cursor');
+                if (cursorEl) cursorEl.innerHTML = config.svg;
+
+                const helperText = document.getElementById('helper-text');
+                if (state.mode === 'read' && helperText) {
+                    helperText.textContent = config.helper;
+                }
+            }
+
+            function toggleRevealAll() {
+                state.revealAll = !state.revealAll;
+                const secretLayer = document.getElementById('secret-layer');
+                const btn = document.getElementById('btn-reveal-all');
+                const textSpan = document.getElementById('text-reveal-all');
+
+                if (state.revealAll) {
+                    if (secretLayer) secretLayer.classList.add('reveal-all');
+                    if (btn) {
+                        btn.classList.add('bg-[#5f7153]', 'text-white', 'border-[#4c5c42]');
+                        btn.classList.remove('bg-[#f3efe4]', 'text-[#524938]');
+                    }
+                    if (textSpan) textSpan.textContent = "Ocultar Secreto";
+                    hideMagicCursor();
+                } else {
+                    if (secretLayer) {
+                        secretLayer.classList.remove('reveal-all');
+                        secretLayer.style.clipPath = 'circle(0px at 50% 50%)';
+                        secretLayer.style.webkitClipPath = 'circle(0px at 50% 50%)';
+                    }
+                    if (btn) {
+                        btn.classList.remove('bg-[#5f7153]', 'text-white', 'border-[#4c5c42]');
+                        btn.classList.add('bg-[#f3efe4]', 'text-[#524938]');
+                    }
+                    if (textSpan) textSpan.textContent = "Revelar Todo";
+                }
+            }
+
+            function hideMagicCursor() {
+                const cursorEl = document.getElementById('magic-tool-cursor');
+                if (cursorEl) cursorEl.style.display = 'none';
+            }
+
+            function setupPointerRevealMechanics() {
+                const area = document.getElementById('interactive-letter-area');
+                const secretLayer = document.getElementById('secret-layer');
+                const cursorEl = document.getElementById('magic-tool-cursor');
+                if (!area || !secretLayer || !cursorEl) return;
+
+                function clearLensAndSecret() {
+                    hideMagicCursor();
+                    if (!state.revealAll) {
+                        secretLayer.style.clipPath = 'circle(0px at 50% 50%)';
+                        secretLayer.style.webkitClipPath = 'circle(0px at 50% 50%)';
+                    }
+                }
+
+                function updateRevealAtPoint(clientX, clientY) {
+                    if (state.mode !== 'read' || state.revealAll) {
+                        hideMagicCursor();
+                        return;
+                    }
+
+                    const rect = area.getBoundingClientRect();
+                    const inside = (
+                        clientX >= rect.left &&
+                        clientX <= rect.right &&
+                        clientY >= rect.top &&
+                        clientY <= rect.bottom
+                    );
+
+                    if (!inside) {
+                        clearLensAndSecret();
+                        return;
+                    }
+
+                    const relX = clientX - rect.left;
+                    const relY = clientY - rect.top;
+                    const radius = TOOL_CONFIG[state.currentTool].radius;
+
+                    cursorEl.style.display = 'block';
+                    cursorEl.style.pointerEvents = 'none';
+                    cursorEl.style.left = `${clientX}px`;
+                    cursorEl.style.top = `${clientY}px`;
+
+                    secretLayer.style.setProperty('--mx', `${relX}px`);
+                    secretLayer.style.setProperty('--my', `${relY}px`);
+
+                    const clipVal = `circle(${radius}px at ${relX}px ${relY}px)`;
+                    secretLayer.style.clipPath = clipVal;
+                    secretLayer.style.webkitClipPath = clipVal;
+                }
+
+                document.addEventListener('pointermove', (e) => {
+                    if (e.pointerType === 'touch') return;
+                    updateRevealAtPoint(e.clientX, e.clientY);
+                }, { passive: true });
+
+                document.addEventListener('pointerdown', (e) => {
+                    if (e.target && e.target.closest('button, input, textarea, select, label, a, #share-modal, #editor-drawer')) {
+                        clearLensAndSecret();
+                        return;
+                    }
+                    updateRevealAtPoint(e.clientX, e.clientY);
+                }, { passive: true });
+
+                area.addEventListener('touchstart', (e) => {
+                    if (e.touches && e.touches.length > 0) {
+                        updateRevealAtPoint(e.touches[0].clientX, e.touches[0].clientY);
+                    }
+                }, { passive: true });
+
+                area.addEventListener('touchmove', (e) => {
+                    if (state.mode === 'read' && !state.revealAll && e.touches && e.touches.length > 0) {
+                        const t = e.touches[0];
+                        const rect = area.getBoundingClientRect();
+                        if (t.clientX >= rect.left && t.clientX <= rect.right && t.clientY >= rect.top && t.clientY <= rect.bottom) {
+                            e.preventDefault();
+                            updateRevealAtPoint(t.clientX, t.clientY);
+                        }
+                    }
+                }, { passive: false });
+
+                document.addEventListener('touchend', clearLensAndSecret, { passive: true });
+                document.addEventListener('touchcancel', clearLensAndSecret, { passive: true });
+                window.addEventListener('scroll', clearLensAndSecret, { passive: true });
+                window.addEventListener('blur', clearLensAndSecret);
+            }
+
+            // =========================================================================
+            // 6. COMPRESIÓN DE IMÁGENES Y GENERACIÓN DE ENLACE COMPARTIBLE
+            // =========================================================================
+            function compressImageToDataUrl(file, maxSize, quality) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            let w = img.width;
+                            let h = img.height;
+                            if (w > h) {
+                                if (w > maxSize) { h = Math.round((h * maxSize) / w); w = maxSize; }
+                            } else {
+                                if (h > maxSize) { w = Math.round((w * maxSize) / h); h = maxSize; }
+                            }
+                            canvas.width = w;
+                            canvas.height = h;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, w, h);
+                            resolve(canvas.toDataURL('image/jpeg', quality));
+                        };
+                        img.onerror = reject;
+                        img.src = e.target.result;
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            async function generateShareLink() {
+                const shareId = 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+                const d = state.data;
+                const payload = {
+                    sid: shareId,
+                    t: d.title,
+                    s: d.stickerLabel,
+                    g: d.tags,
+                    v: d.visibleText,
+                    h: d.secretText,
+                    c: d.colors,
+                    l: state.currentTool
+                };
+                if (d.locketLeft) payload.il = d.locketLeft;
+                if (d.locketRight) payload.ir = d.locketRight;
+                if (d.polaroid) payload.ip = d.polaroid;
+
+                saveToStorage(shareId);
+
+                const token = await compressPayloadToToken(payload);
+                const baseHref = window.location.href.split('#')[0].split('?')[0];
+                const cleanBase = baseHref && baseHref.startsWith('http')
+                    ? baseHref
+                    : `${window.location.origin}${window.location.pathname}`;
+
+                return `${cleanBase}#share=${encodeURIComponent(token)}&sid=${encodeURIComponent(shareId)}`;
+            }
+
+            function showToast(msg) {
+                const toast = document.getElementById('toast-notification');
+                const msgEl = document.getElementById('toast-message');
+                if (!toast || !msgEl) return;
+                msgEl.textContent = msg;
+                toast.classList.remove('opacity-0', 'translate-y-3');
+                toast.classList.add('opacity-100', 'translate-y-0');
+
+                clearTimeout(window._toastTimer);
+                window._toastTimer = setTimeout(() => {
+                    toast.classList.add('opacity-0', 'translate-y-3');
+                    toast.classList.remove('opacity-100', 'translate-y-0');
+                }, 2800);
+            }
+
+            // =========================================================================
+            // 7. VINCULACIÓN DE EVENTOS DE INTERFAZ
+            // =========================================================================
+            function bindEvents() {
+                document.getElementById('btn-mode-read')?.addEventListener('click', () => setMode('read'));
+                document.getElementById('btn-mode-edit')?.addEventListener('click', () => {
+                    if (state.isSharedViewer) return;
+                    setMode('edit');
+                });
+                document.getElementById('btn-close-editor')?.addEventListener('click', () => {
+                    setMode('read');
+                    showToast('Cambios aplicados a tu carta');
+                });
+                document.getElementById('btn-banner-edit')?.addEventListener('click', () => {
+                    const cleanUrl = window.location.href.split('#')[0].split('?')[0];
+                    try {
+                        window.history.replaceState(null, '', cleanUrl);
+                    } catch (e) {}
+                    setSharedViewerUI(false);
+                    state.data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+                    renderAll();
+                    setTool('locket');
+                    setMode('edit');
+                    showToast('Modo creador activado: edita tu propia carta');
+                });
+
+                document.querySelectorAll('.tool-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        setTool(btn.dataset.tool);
+                        saveToStorage();
+                    });
+                });
+
+                document.getElementById('btn-reveal-all')?.addEventListener('click', toggleRevealAll);
+
+                document.getElementById('wax-envelope')?.addEventListener('click', () => {
+                    const env = document.getElementById('wax-envelope');
+                    if (env) {
+                        env.classList.remove('envelope-animate');
+                        void env.offsetWidth;
+                        env.classList.add('envelope-animate');
+                    }
+                    showToast('💌 Sello roto: pasa la lente sobre la carta para leer sus secretos');
+                });
+
+                document.querySelectorAll('[data-focus]').forEach(el => {
+                    el.addEventListener('click', () => {
+                        if (state.isSharedViewer) return;
+                        const targetId = el.dataset.focus;
+                        if (state.mode !== 'edit') setMode('edit');
+                        setTimeout(() => {
+                            document.getElementById(targetId)?.focus();
+                        }, 50);
+                    });
+                });
+
+                const syncInputs = () => {
+                    state.data.title = document.getElementById('input-title')?.value ?? '';
+                    state.data.stickerLabel = document.getElementById('input-sticker-label')?.value ?? '';
+                    state.data.tags = [
+                        document.getElementById('input-tag-1')?.value ?? '',
+                        document.getElementById('input-tag-2')?.value ?? '',
+                        document.getElementById('input-tag-3')?.value ?? '',
+                        document.getElementById('input-tag-4')?.value ?? ''
+                    ];
+                    state.data.visibleText = document.getElementById('input-visible-text')?.value ?? '';
+                    state.data.secretText = document.getElementById('input-secret-text')?.value ?? '';
+                    renderAll();
+                    saveToStorage();
+                };
+
+                ['input-title', 'input-sticker-label', 'input-tag-1', 'input-tag-2', 'input-tag-3', 'input-tag-4', 'input-visible-text', 'input-secret-text'].forEach(id => {
+                    document.getElementById(id)?.addEventListener('input', syncInputs);
+                });
+
+                document.querySelectorAll('.palette-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const key = btn.dataset.palette;
+                        const palette = COLOR_PALETTES[key];
+                        if (palette) {
+                            state.data.colors = {
+                                card: palette.card,
+                                paper: palette.paper,
+                                inkVisible: palette.inkVisible,
+                                inkSecret: palette.inkSecret
+                            };
+                            applyColorTheme(state.data.colors);
+                            saveToStorage();
+                            showToast(`Tema "${palette.name}" aplicado`);
+                        }
+                    });
+                });
+
+                const syncCustomColors = () => {
+                    state.data.colors = {
+                        card: document.getElementById('color-card')?.value || DEFAULT_DATA.colors.card,
+                        paper: document.getElementById('color-paper')?.value || DEFAULT_DATA.colors.paper,
+                        inkVisible: document.getElementById('color-ink-visible')?.value || DEFAULT_DATA.colors.inkVisible,
+                        inkSecret: document.getElementById('color-ink-secret')?.value || DEFAULT_DATA.colors.inkSecret
+                    };
+                    applyColorTheme(state.data.colors);
+                    saveToStorage();
+                };
+
+                ['color-card', 'color-paper', 'color-ink-visible', 'color-ink-secret'].forEach(id => {
+                    document.getElementById(id)?.addEventListener('input', syncCustomColors);
+                });
+
+                const bindUpload = (inputId, key, maxDim) => {
+                    document.getElementById(inputId)?.addEventListener('change', async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                            const dataUrl = await compressImageToDataUrl(file, maxDim, 0.72);
+                            state.data[key] = dataUrl;
+                            renderAll();
+                            saveToStorage();
+                            showToast('Fotografía añadida al collage');
+                        } catch (err) {
+                            showToast('No se pudo cargar la imagen');
+                        }
+                    });
+                };
+                bindUpload('upload-locket-left', 'locketLeft', 140);
+                bindUpload('upload-locket-right', 'locketRight', 140);
+                bindUpload('upload-polaroid', 'polaroid', 200);
+
+                document.getElementById('btn-reset-default')?.addEventListener('click', () => {
+                    state.data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+                    try {
+                        localStorage.removeItem('scrapbook_secret_letter_v2');
+                        window.history.replaceState(null, '', window.location.href.split('#')[0].split('?')[0]);
+                    } catch (e) {}
+                    renderAll();
+                    setTool('locket');
+                    showToast('Carta restaurada al diseño original');
+                });
+
+                const shareModal = document.getElementById('share-modal');
+                const shareInput = document.getElementById('share-url-input');
+                const shareBadge = document.getElementById('share-status-badge');
+                const shareNote = document.getElementById('share-detail-note');
+
+                document.getElementById('btn-open-share')?.addEventListener('click', async () => {
+                    if (shareModal) {
+                        shareModal.classList.remove('hidden');
+                        shareModal.classList.add('flex');
+                    }
+                    if (shareInput) shareInput.value = 'Generando enlace...';
+                    if (shareBadge) shareBadge.textContent = 'Comprimiendo...';
+
+                    try {
+                        const url = await generateShareLink();
+                        if (shareInput) shareInput.value = url;
+                        if (shareBadge) shareBadge.textContent = `${url.length.toLocaleString()} caracteres`;
+                        if (shareNote) {
+                            shareNote.textContent = 'Incluye compresión deflate + respaldo local por ID para abrirse sin problemas.';
+                        }
+                        try {
+                            window.history.replaceState(null, '', url);
+                        } catch (e) {}
+                    } catch (err) {
+                        const fallbackUrl = `${window.location.href.split('#')[0]}#share=b1.${bytesToBase64Url(new TextEncoder().encode(JSON.stringify({ t: state.data.title, v: state.data.visibleText, h: state.data.secretText, c: state.data.colors, l: state.currentTool })))}`;
+                        if (shareInput) shareInput.value = fallbackUrl;
+                        if (shareBadge) shareBadge.textContent = 'Modo compatibilidad';
+                        if (shareNote) shareNote.textContent = 'Enlace generado en formato compatible.';
+                    }
+                });
+
+                const closeShare = () => {
+                    if (!shareModal) return;
+                    shareModal.classList.add('hidden');
+                    shareModal.classList.remove('flex');
+                };
+                document.getElementById('btn-close-share')?.addEventListener('click', closeShare);
+                document.getElementById('btn-close-share-bottom')?.addEventListener('click', closeShare);
+
+                document.getElementById('btn-copy-share')?.addEventListener('click', async () => {
+                    if (!shareInput || !shareInput.value) return;
+                    shareInput.select();
+                    shareInput.setSelectionRange(0, 999999);
+                    try {
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            await navigator.clipboard.writeText(shareInput.value);
+                        } else {
+                            document.execCommand('copy');
+                        }
+                        showToast('¡Enlace copiado! Ya puedes compartirlo');
+                    } catch (e) {
+                        document.execCommand('copy');
+                        showToast('Enlace seleccionado para copiar');
+                    }
+                });
+
+                document.getElementById('btn-preview-recipient')?.addEventListener('click', () => {
+                    closeShare();
+                    setSharedViewerUI(true);
+                    setMode('read');
+                    if (state.revealAll) toggleRevealAll();
+                    showToast('Vista previa activa: así lo verá quien reciba tu enlace');
+                });
+
+                document.getElementById('btn-download-html')?.addEventListener('click', async () => {
+                    try {
+                        const shareUrl = await generateShareLink();
+                        try {
+                            window.history.replaceState(null, '', shareUrl);
+                        } catch (e) {}
+                        const htmlContent = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+                        const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = 'mi-carta-secreta.html';
+                        link.click();
+                        URL.revokeObjectURL(link.href);
+                        showToast('Archivo HTML guardado con tu carta');
+                    } catch (e) {
+                        showToast('Usa el botón Compartir para copiar tu enlace');
+                    }
+                });
+            }
+
+            // =========================================================================
+            // 8. ARRANQUE INICIAL BLINDADO
+            // =========================================================================
+            try {
+                loadLocalFallback();
+                renderAll();
+                setTool(state.data.tool || 'locket');
+                setMode('read');
+                bindEvents();
+                setupPointerRevealMechanics();
+                loadInitialStateAsync().catch(() => {
+                    renderAll();
+                });
+            } catch (fatalErr) {
+                try {
+                    state.data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+                    renderAll();
+                    setMode('read');
+                } catch (e) {}
+            }
+        });
+    </script>
+</body>
+</html>
+```
